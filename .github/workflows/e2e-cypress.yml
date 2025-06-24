@@ -1,1 +1,46 @@
+name: E2E Cypress Tests
 
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - feature/**
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./e2e-cypress
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Cypress tests for Demoblaze user journey
+        run: npx cypress run --spec "cypress/e2e/jornada-usuario-demoblaze-spec.cy.js"
+        env:
+          CYPRESS_baseUrl: 'https://demoblaze.com/'
+
+      - name: Upload Cypress screenshots (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: ./e2e-cypress/cypress/screenshots
+
+      - name: Upload Cypress videos (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: ./e2e-cypress/cypress/videos
